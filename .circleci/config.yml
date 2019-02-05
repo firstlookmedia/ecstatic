@@ -125,12 +125,12 @@ jobs:
           name: build app
           command: |
             mkdir ./build
-            cp ./environment.txt ./build
             cp ./*.py ./build
             pip install -r requirements.txt --target=./build
       - persist_to_workspace:
           root: ~/project
           paths:
+            - ./environment.txt
             - ./build
 
   # dev
