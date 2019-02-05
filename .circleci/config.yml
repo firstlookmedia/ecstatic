@@ -69,6 +69,7 @@ aliases:
             echo 'export DEPLOY_AWS_ACCOUNT_KEY=DEPLOY_AWS_ACCOUNT_$ENV_SUFFIX' >> $BASH_ENV
             echo 'export DEPLOY_AWS_ACCOUNT=${!DEPLOY_AWS_ACCOUNT_KEY}' >> $BASH_ENV
             #
+            echo 'export DEPLOY_LAMBDA_EVENT_RULE="${DEPLOY_LAMBDA_EVENT_RULE:-rate(1 hour)"}' >> $BASH_ENV
             echo 'export DEPLOY_LAMBDA_FUNCTION_NAME="ecstatic"' >> $BASH_ENV
             echo 'export DEPLOY_LAMBDA_FUNCTION_ROLE="ecstatic_lambda"' >> $BASH_ENV
             echo 'export DEPLOY_LAMBDA_FUNCTION_HANDLER="ecstatic.lambda_handler"' >> $BASH_ENV
