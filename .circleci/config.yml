@@ -78,6 +78,8 @@ aliases:
             echo 'export DEPLOY_LAMBDA_FUNCTION_MEMORY_SIZE=128' >> $BASH_ENV
             echo 'export DEPLOY_LAMBDA_FUNCTION_ENV_TEMPLATE="/tmp/workspace/environment.txt"' >> $BASH_ENV
             echo 'export DEPLOY_LAMBDA_SOURCE_DIR="/tmp/workspace/build"' >> $BASH_ENV
+            echo 'export DEPLOY_LAMBDA_TARGET_INPUT_JSON="{}"' >> $BASH_ENV
+
             #
             echo 'export ECSTATIC_LOG_LEVEL=${ECSTATIC_LOG_LEVEL:-DEBUG}' >> $BASH_ENV
 
