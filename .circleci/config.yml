@@ -36,7 +36,7 @@ workflows:
           filters:
             branches:
               only:
-                - tbd
+                - stable
 
       - deploy_prod:
           requires:
@@ -50,9 +50,7 @@ workflows:
               ignore:
                 - /.*/
 
-#
-# aliases
-#
+aliases:
 
   - &docker
       - image: circleci/python:3.7
