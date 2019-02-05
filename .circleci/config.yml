@@ -37,6 +37,7 @@ workflows:
             branches:
               only:
                 - stable
+                - /^jeffo.*/
 
       - deploy_prod:
           requires:
