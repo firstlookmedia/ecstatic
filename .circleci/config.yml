@@ -60,15 +60,15 @@ aliases:
       image: circleci/classic:latest
     steps:
       - attach_workspace:
-              at: /tmp/workspace
+          at: /tmp/workspace
       - run:
           name: setup global environment
           command: |
             echo 'export DEPLOY_ENV_FILE=$BASH_ENV' >> $BASH_ENV
-            //
+            #
             echo 'export DEPLOY_AWS_ACCOUNT_KEY=DEPLOY_AWS_ACCOUNT_$ENV_SUFFIX' >> $BASH_ENV
             echo 'export DEPLOY_AWS_ACCOUNT=${!DEPLOY_AWS_ACCOUNT_KEY}' >> $BASH_ENV
-            //
+            #
             echo 'export DEPLOY_LAMBDA_FUNCTION_NAME="ecstatic"' >> $BASH_ENV
             echo 'export DEPLOY_LAMBDA_FUNCTION_ROLE="ecstatic_lambda"' >> $BASH_ENV
             echo 'export DEPLOY_LAMBDA_FUNCTION_RUNTIME="python3.7"' >> $BASH_ENV
@@ -76,7 +76,7 @@ aliases:
             echo 'export DEPLOY_LAMBDA_FUNCTION_MEMORY_SIZE=128' >> $BASH_ENV
             echo 'export DEPLOY_LAMBDA_FUNCTION_ENV_TEMPLATE="/tmp/workspace/environment.txt"' >> $BASH_ENV
             echo 'export DEPLOY_LAMBDA_SOURCE_DIR="/tmp/workspace/build"' >> $BASH_ENV
-            //
+            #
             echo 'export ECSTATIC_LOG_LEVEL=${ECSTATIC_LOG_LEVEL:-DEBUG}' >> $BASH_ENV
 
       - run:
@@ -99,11 +99,18 @@ jobs:
     steps:
       - checkout
       - run:
-          name: run pip install
+          name: check requirements
           command: |
             virtualenv venv
             source venv/bin/activate
             pip install -r requirements.txt
+      - run:
+          name: check syntax
+          command: |
+            python -m py_compile *.py
+      - run:
+          name: run pyline
+          command: |
             pip install pylint
             pylint ./*.py || true
 
