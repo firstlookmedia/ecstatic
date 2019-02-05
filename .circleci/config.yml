@@ -104,7 +104,7 @@ jobs:
             virtualenv venv
             source venv/bin/activate
             pip install -r requirements.txt
-            pip install pychecker
+            pip install PyChecker
             pychecker ./*.py
 
   # build
@@ -116,9 +116,9 @@ jobs:
           name: build app
           command: |
             mkdir ./build
-            cp ./environment.txt ./*.py ./build
-            cd ./build
-            pip install -r requirements.txt .
+            cp ./environment.txt ./build
+            cp ./*.py ./build
+            pip install -r requirements.txt --target=./build
       - persist_to_workspace:
           root: ~/project
           paths:
