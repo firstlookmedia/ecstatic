@@ -90,9 +90,7 @@ aliases:
 
 jobs:
 
-  #
-  # checkout the code and run tests
-  #
+  # test
   test_app:
     docker: *docker
     steps:
@@ -106,6 +104,7 @@ jobs:
             pip install pychecker
             pychecker ./*.py
 
+  # build
   build_app:
     docker: *docker
     steps:
@@ -122,16 +121,19 @@ jobs:
           paths:
             - ./build
 
+  # dev
   deploy_dev:
     environment:
       ENV_SUFFIX: "DEV"
     <<: *deploy
 
+  # staging
   deploy_staging:
     environment:
       ENV_SUFFIX: "STAGING"
     <<: *deploy
 
+  # prod
   deploy_prod:
     environment:
       ENV_SUFFIX: "PROD"
