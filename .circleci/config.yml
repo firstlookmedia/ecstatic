@@ -55,7 +55,7 @@ aliases:
   - &docker
       - image: circleci/python:3.7
 
-  - &deploy:
+  - &deploy
     machine:
       image: circleci/classic:latest
     steps:
