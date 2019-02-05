@@ -196,7 +196,7 @@ def send_message_to_slack( message ):
 #
 
 def lambda_handler( event, context ):
-  update_all_clusters
+  update_all_clusters()
   return { 'message' : 'success' }
 
 #
