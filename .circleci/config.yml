@@ -107,12 +107,14 @@ jobs:
       - run:
           name: check syntax
           command: |
+            source venv/bin/activate
             python -m py_compile *.py
       - run:
-          name: run pyline
+          name: run pylint
           command: |
+            source venv/bin/activate
             pip install pylint
-            pylint ./*.py || true
+            pylint *.py || true
 
   # build
   build_app:
