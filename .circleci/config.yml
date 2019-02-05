@@ -105,8 +105,7 @@ jobs:
             source venv/bin/activate
             pip install -r requirements.txt
             pip install pylint
-            pylint ./*.py
-            true
+            pylint ./*.py || true
 
   # build
   build_app:
