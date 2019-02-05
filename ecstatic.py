@@ -30,14 +30,6 @@ logger.info( 'logger level set to {}'
 )
 
 #
-# lambda handler
-#
-
-def lambda_handler( event, context ):
-  update_all_clusters
-  return { 'message' : 'success' }
-
-#
 # functions
 #
 
@@ -198,6 +190,14 @@ def send_message_to_slack( message ):
         .format( response.status_code, response.text )
     )
 
+
+#
+# lambda handler
+#
+
+def lambda_handler( event, context ):
+  update_all_clusters
+  return { 'message' : 'success' }
 
 #
 # main
