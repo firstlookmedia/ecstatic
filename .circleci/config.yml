@@ -104,8 +104,9 @@ jobs:
             virtualenv venv
             source venv/bin/activate
             pip install -r requirements.txt
-            pip install PyChecker
-            pychecker ./*.py
+            pip install pylint
+            pylint ./*.py
+            true
 
   # build
   build_app:
