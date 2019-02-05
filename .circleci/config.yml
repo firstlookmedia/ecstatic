@@ -71,6 +71,7 @@ aliases:
             #
             echo 'export DEPLOY_LAMBDA_FUNCTION_NAME="ecstatic"' >> $BASH_ENV
             echo 'export DEPLOY_LAMBDA_FUNCTION_ROLE="ecstatic_lambda"' >> $BASH_ENV
+            echo 'export DEPLOY_LAMBDA_FUNCTION_HANDLER="ecstatic.lambda_handler"' >> $BASH_ENV
             echo 'export DEPLOY_LAMBDA_FUNCTION_RUNTIME="python3.7"' >> $BASH_ENV
             echo 'export DEPLOY_LAMBDA_FUNCTION_TIMEOUT=120' >> $BASH_ENV
             echo 'export DEPLOY_LAMBDA_FUNCTION_MEMORY_SIZE=128' >> $BASH_ENV

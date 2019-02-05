@@ -30,8 +30,22 @@ logger.info( 'logger level set to {}'
 )
 
 #
+# lambda handler
+#
+
+def lambda_handler( event, context ):
+  update_all_clusters
+  return { 'message' : 'success' }
+
+#
 # functions
 #
+
+def update_all_clusters():
+  for c in ecs.list_clusters().get('clusterArns'):
+    update_cluster_agents( [ c ] )
+  return
+
 
 def update_cluster_agents( clusters ):
 
@@ -190,10 +204,7 @@ def send_message_to_slack( message ):
 #
 
 def main():
-  clusters = ecs.list_clusters().get('clusterArns')
-
-  for c in clusters:
-    update_cluster_agents( [ c ] )
+  update_all_clusters()
 
 if __name__ == "__main__":
   main()
