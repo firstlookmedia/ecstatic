@@ -1,0 +1,6 @@
+{
+  "Variables" : {
+    "ECSTATIC_LOG_LEVEL"   : "${ECSTATIC_LOG_LEVEL}",
+    "ECSTATIC_WEBHOOK_URL" : "${ECSTATIC_WEBHOOK_URL}"
+  }
+}

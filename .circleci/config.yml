@@ -1,0 +1,141 @@
+
+version: 2
+
+workflows:
+  version: 2
+
+  main:
+    jobs:
+
+      - build_app:
+          filters:
+            tags:
+              only:
+                - /.*/
+
+      - test_app:
+          filters:
+            tags:
+              only:
+                - /.*/
+
+      - deploy_dev:
+          requires:
+            - test_app
+            - build_app
+          filters:
+            branches:
+              only:
+                - stable
+                - /^jeffo.*/
+
+      - deploy_staging:
+          requires:
+            - test_app
+            - build_app
+          filters:
+            branches:
+              only:
+                - tbd
+
+      - deploy_prod:
+          requires:
+            - test_app
+            - build_app
+          filters:
+            tags:
+              only:
+                - /^release-.*/
+            branches:
+              ignore:
+                - /.*/
+
+#
+# aliases
+#
+
+  - &docker
+      - image: circleci/python:3.7
+
+  - &deploy:
+    machine:
+      image: circleci/classic:latest
+    steps:
+      - attach_workspace:
+              at: /tmp/workspace
+      - run:
+          name: setup global environment
+          command: |
+            echo 'export DEPLOY_ENV_FILE=$BASH_ENV' >> $BASH_ENV
+            //
+            echo 'export DEPLOY_AWS_ACCOUNT_KEY=DEPLOY_AWS_ACCOUNT_$ENV_SUFFIX' >> $BASH_ENV
+            echo 'export DEPLOY_AWS_ACCOUNT=${!DEPLOY_AWS_ACCOUNT_KEY}' >> $BASH_ENV
+            //
+            echo 'export DEPLOY_LAMBDA_FUNCTION_NAME="ecstatic"' >> $BASH_ENV
+            echo 'export DEPLOY_LAMBDA_FUNCTION_ROLE="ecstatic_lambda"' >> $BASH_ENV
+            echo 'export DEPLOY_LAMBDA_FUNCTION_RUNTIME="python3.7"' >> $BASH_ENV
+            echo 'export DEPLOY_LAMBDA_FUNCTION_TIMEOUT=120' >> $BASH_ENV
+            echo 'export DEPLOY_LAMBDA_FUNCTION_MEMORY_SIZE=128' >> $BASH_ENV
+            echo 'export DEPLOY_LAMBDA_FUNCTION_ENV_TEMPLATE="/tmp/workspace/environment.txt"' >> $BASH_ENV
+            echo 'export DEPLOY_LAMBDA_SOURCE_DIR="/tmp/workspace/build"' >> $BASH_ENV
+            //
+            echo 'export ECSTATIC_LOG_LEVEL=${ECSTATIC_LOG_LEVEL:-DEBUG}' >> $BASH_ENV
+
+      - run:
+          name: install deployables
+          command: |
+            npm install -g https://github.com/firstlookmedia/deployables
+      - run:
+          name: deploy lambda
+          command: |
+            $( npm bin -g)/deployables lambda_deploy
+
+jobs:
+
+  #
+  # checkout the code and run tests
+  #
+  test_app:
+    docker: *docker
+    steps:
+      - checkout
+      - run:
+          name: run pip install
+          command: |
+            virtualenv venv
+            source venv/bin/activate
+            pip install -r requirements.txt
+            pip install pychecker
+            pychecker ./*.py
+
+  build_app:
+    docker: *docker
+    steps:
+      - checkout
+      - run:
+          name: build app
+          command: |
+            mkdir ./build
+            cp ./environment.txt ./*.py ./build
+            cd ./build
+            pip install -r requirements.txt .
+      - persist_to_workspace:
+          root: ~/project
+          paths:
+            - ./build
+
+  deploy_dev:
+    environment:
+      ENV_SUFFIX: "DEV"
+    <<: *deploy
+
+  deploy_staging:
+    environment:
+      ENV_SUFFIX: "STAGING"
+    <<: *deploy
+
+  deploy_prod:
+    environment:
+      ENV_SUFFIX: "PROD"
+      ECSTATIC_LOG_LEVEL: "INFO"
+    <<: *deploy
