@@ -57,27 +57,27 @@ aliases:
       - image: circleci/python:3.7
 
   - &set-global-env
-      name: Setup global environment variables
-      command: |
-          name: setup global environment
-          command: |
-            echo 'export DEPLOY_ENV_FILE=$BASH_ENV' >> $BASH_ENV
-            #
-            echo 'export DEPLOY_AWS_ACCOUNT_KEY=DEPLOY_AWS_ACCOUNT_$ENV_SUFFIX' >> $BASH_ENV
-            echo 'export DEPLOY_AWS_ACCOUNT=${!DEPLOY_AWS_ACCOUNT_KEY}' >> $BASH_ENV
-            #
-            echo 'export DEPLOY_LAMBDA_EVENT_RULE="${DEPLOY_LAMBDA_EVENT_RULE:-rate(1 hour)}"' >> $BASH_ENV
-            echo 'export DEPLOY_LAMBDA_FUNCTION_NAME="ecstatic"' >> $BASH_ENV
-            echo 'export DEPLOY_LAMBDA_FUNCTION_ROLE="ecstatic_lambda"' >> $BASH_ENV
-            echo 'export DEPLOY_LAMBDA_FUNCTION_HANDLER="ecstatic.lambda_handler"' >> $BASH_ENV
-            echo 'export DEPLOY_LAMBDA_FUNCTION_RUNTIME="python3.7"' >> $BASH_ENV
-            echo 'export DEPLOY_LAMBDA_FUNCTION_TIMEOUT=120' >> $BASH_ENV
-            echo 'export DEPLOY_LAMBDA_FUNCTION_MEMORY_SIZE=128' >> $BASH_ENV
-            echo 'export DEPLOY_LAMBDA_FUNCTION_ENV_TEMPLATE="/tmp/workspace/environment.txt"' >> $BASH_ENV
-            echo 'export DEPLOY_LAMBDA_SOURCE_DIR="/tmp/workspace/build"' >> $BASH_ENV
-            echo 'export DEPLOY_LAMBDA_TARGET_INPUT_JSON="{}"' >> $BASH_ENV
-            #
-            echo 'export ECSTATIC_LOG_LEVEL=${ECSTATIC_LOG_LEVEL:-DEBUG}' >> $BASH_ENV
+    name: Setup global environment variables
+    command: |
+        name: setup global environment
+        command: |
+          echo 'export DEPLOY_ENV_FILE=$BASH_ENV' >> $BASH_ENV
+          #
+          echo 'export DEPLOY_AWS_ACCOUNT_KEY=DEPLOY_AWS_ACCOUNT_$ENV_SUFFIX' >> $BASH_ENV
+          echo 'export DEPLOY_AWS_ACCOUNT=${!DEPLOY_AWS_ACCOUNT_KEY}' >> $BASH_ENV
+          #
+          echo 'export DEPLOY_LAMBDA_EVENT_RULE="${DEPLOY_LAMBDA_EVENT_RULE:-rate(1 hour)}"' >> $BASH_ENV
+          echo 'export DEPLOY_LAMBDA_FUNCTION_NAME="ecstatic"' >> $BASH_ENV
+          echo 'export DEPLOY_LAMBDA_FUNCTION_ROLE="ecstatic_lambda"' >> $BASH_ENV
+          echo 'export DEPLOY_LAMBDA_FUNCTION_HANDLER="ecstatic.lambda_handler"' >> $BASH_ENV
+          echo 'export DEPLOY_LAMBDA_FUNCTION_RUNTIME="python3.7"' >> $BASH_ENV
+          echo 'export DEPLOY_LAMBDA_FUNCTION_TIMEOUT=120' >> $BASH_ENV
+          echo 'export DEPLOY_LAMBDA_FUNCTION_MEMORY_SIZE=128' >> $BASH_ENV
+          echo 'export DEPLOY_LAMBDA_FUNCTION_ENV_TEMPLATE="/tmp/workspace/environment.txt"' >> $BASH_ENV
+          echo 'export DEPLOY_LAMBDA_SOURCE_DIR="/tmp/workspace/build"' >> $BASH_ENV
+          echo 'export DEPLOY_LAMBDA_TARGET_INPUT_JSON="{}"' >> $BASH_ENV
+          #
+          echo 'export ECSTATIC_LOG_LEVEL=${ECSTATIC_LOG_LEVEL:-DEBUG}' >> $BASH_ENV
 
   - &deployables-install
     name: Install deployment dependencies
