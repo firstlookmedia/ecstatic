@@ -134,13 +134,13 @@ def update_cluster_agents( clusters ):
         )
 
         logger.info(
-          'agent update requested, skipping further update requests, ec2_instance_id: {}, cluster_name: {}'
+          'agent update requested, delaying additional updates until next run, ec2_instance_id: {}, cluster_name: {}'
             .format( ec2_instance_id, cluster_name )
         )
         logger.debug( 'agent update requested, ci: {}'.format( pformat( ci ) ) )
 
         send_message_to_slack(
-          'agent update requested, skipping further update requests, ec2_instance_id: {}, cluster_arn: {}'
+          'agent update requested, delaying additional updates until next run, ec2_instance_id: {}, cluster_arn: {}'
             .format( ec2_instance_id, cluster_arn )
         )
 
