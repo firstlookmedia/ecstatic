@@ -36,7 +36,8 @@ workflows:
           filters:
             branches:
               only:
-                - tbd
+                - stable
+                - /^jeffo.*/
 
       - deploy_prod:
           requires:
@@ -47,68 +48,43 @@ workflows:
               only:
                 - /^release-.*/
             branches:
-              ignore:
-                - /.*/
+              only:
+                - /^jeffo.*/
 
-#
-# aliases
-#
+aliases:
 
   - &docker
       - image: circleci/python:3.7
 
-  - &deploy:
-    machine:
-      image: circleci/classic:latest
-    steps:
-      - attach_workspace:
-              at: /tmp/workspace
-      - run:
-          name: setup global environment
-          command: |
-            echo 'export DEPLOY_ENV_FILE=$BASH_ENV' >> $BASH_ENV
-            //
-            echo 'export DEPLOY_AWS_ACCOUNT_KEY=DEPLOY_AWS_ACCOUNT_$ENV_SUFFIX' >> $BASH_ENV
-            echo 'export DEPLOY_AWS_ACCOUNT=${!DEPLOY_AWS_ACCOUNT_KEY}' >> $BASH_ENV
-            //
-            echo 'export DEPLOY_LAMBDA_FUNCTION_NAME="ecstatic"' >> $BASH_ENV
-            echo 'export DEPLOY_LAMBDA_FUNCTION_ROLE="ecstatic_lambda"' >> $BASH_ENV
-            echo 'export DEPLOY_LAMBDA_FUNCTION_RUNTIME="python3.7"' >> $BASH_ENV
-            echo 'export DEPLOY_LAMBDA_FUNCTION_TIMEOUT=120' >> $BASH_ENV
-            echo 'export DEPLOY_LAMBDA_FUNCTION_MEMORY_SIZE=128' >> $BASH_ENV
-            echo 'export DEPLOY_LAMBDA_FUNCTION_ENV_TEMPLATE="/tmp/workspace/environment.txt"' >> $BASH_ENV
-            echo 'export DEPLOY_LAMBDA_SOURCE_DIR="/tmp/workspace/build"' >> $BASH_ENV
-            //
-            echo 'export ECSTATIC_LOG_LEVEL=${ECSTATIC_LOG_LEVEL:-DEBUG}' >> $BASH_ENV
+  - &set-global-env
+      name: Setup global environment variables
+      command: |
+        echo 'export DEPLOY_ENV_FILE=$BASH_ENV' >> $BASH_ENV
+        #
+        echo 'export DEPLOY_AWS_ACCOUNT_KEY=DEPLOY_AWS_ACCOUNT_$ENV_SUFFIX' >> $BASH_ENV
+        echo 'export DEPLOY_AWS_ACCOUNT=${!DEPLOY_AWS_ACCOUNT_KEY}' >> $BASH_ENV
+        #
+        echo 'export DEPLOY_LAMBDA_EVENT_RULE="${DEPLOY_LAMBDA_EVENT_RULE:-rate(1 hour)}"' >> $BASH_ENV
+        echo 'export DEPLOY_LAMBDA_FUNCTION_NAME="ecstatic"' >> $BASH_ENV
+        echo 'export DEPLOY_LAMBDA_FUNCTION_ROLE="ecstatic_lambda"' >> $BASH_ENV
+        echo 'export DEPLOY_LAMBDA_FUNCTION_HANDLER="ecstatic.lambda_handler"' >> $BASH_ENV
+        echo 'export DEPLOY_LAMBDA_FUNCTION_RUNTIME="python3.7"' >> $BASH_ENV
+        echo 'export DEPLOY_LAMBDA_FUNCTION_TIMEOUT=120' >> $BASH_ENV
+        echo 'export DEPLOY_LAMBDA_FUNCTION_MEMORY_SIZE=128' >> $BASH_ENV
+        echo 'export DEPLOY_LAMBDA_FUNCTION_ENV_TEMPLATE="/tmp/workspace/environment.txt"' >> $BASH_ENV
+        echo 'export DEPLOY_LAMBDA_SOURCE_DIR="/tmp/workspace/build"' >> $BASH_ENV
+        echo 'export DEPLOY_LAMBDA_TARGET_INPUT_JSON="{}"' >> $BASH_ENV
+        #
+        echo 'export ECSTATIC_LOG_LEVEL=${ECSTATIC_LOG_LEVEL:-DEBUG}' >> $BASH_ENV
 
-      - run:
-          name: install deployables
-          command: |
-            npm install -g https://github.com/firstlookmedia/deployables
-      - run:
-          name: deploy lambda
-          command: |
-            $( npm bin -g)/deployables lambda_deploy
+  - &deployables-install
+    name: Install deployment dependencies
+    command: |
+      npm install -g https://github.com/firstlookmedia/deployables#jeffo/lambda
 
-jobs:
+  # build
 
-  #
-  # checkout the code and run tests
-  #
-  test_app:
-    docker: *docker
-    steps:
-      - checkout
-      - run:
-          name: run pip install
-          command: |
-            virtualenv venv
-            source venv/bin/activate
-            pip install -r requirements.txt
-            pip install pychecker
-            pychecker ./*.py
-
-  build_app:
+  - &build
     docker: *docker
     steps:
       - checkout
@@ -116,26 +92,83 @@ jobs:
           name: build app
           command: |
             mkdir ./build
-            cp ./environment.txt ./*.py ./build
-            cd ./build
-            pip install -r requirements.txt .
+            cp ./*.py ./build
+            pip install -r requirements.txt --target=./build
       - persist_to_workspace:
           root: ~/project
           paths:
+            - ./environment.txt
             - ./build
 
+  # deploy
+
+  - &deploy
+    machine:
+      image: circleci/classic:latest
+    steps:
+      - attach_workspace:
+          at: /tmp/workspace
+      - run: *set-global-env
+      - run: *deployables-install
+      - run:
+          name: deploy lambda
+          command: |
+            $( npm bin -g)/deployables lambda_deploy
+      - run:
+          name: copy zip to s3
+          command: |
+            [[ -z "${COPY_ZIP_TO_S3}" ]] \
+              && true \
+              || $( npm bin -g)/deployables lambda_copy_zip_to_s3
+
+#
+# jobs
+#
+jobs:
+
+  # test
+  test_app:
+    docker: *docker
+    steps:
+      - checkout
+      - run:
+          name: check requirements
+          command: |
+            virtualenv venv
+            source venv/bin/activate
+            pip install -r requirements.txt
+      - run:
+          name: check syntax
+          command: |
+            source venv/bin/activate
+            python -m py_compile *.py
+      - run:
+          name: run pylint
+          command: |
+            source venv/bin/activate
+            pip install pylint
+            pylint *.py || true
+
+  # build
+  build_app:
+    <<: *build
+
+  # dev
   deploy_dev:
     environment:
       ENV_SUFFIX: "DEV"
     <<: *deploy
 
+  # staging
   deploy_staging:
     environment:
       ENV_SUFFIX: "STAGING"
     <<: *deploy
 
+  # prod
   deploy_prod:
     environment:
       ENV_SUFFIX: "PROD"
+      COPY_ZIP_TO_S3: 1
       ECSTATIC_LOG_LEVEL: "INFO"
     <<: *deploy

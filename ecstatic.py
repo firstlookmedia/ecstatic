@@ -33,6 +33,12 @@ logger.info( 'logger level set to {}'
 # functions
 #
 
+def update_all_clusters():
+  for c in ecs.list_clusters().get('clusterArns'):
+    update_cluster_agents( [ c ] )
+  return
+
+
 def update_cluster_agents( clusters ):
 
   dc = ecs.describe_clusters(
@@ -81,7 +87,7 @@ def update_cluster_agents( clusters ):
             .format( ec2_instance_id, pformat( ci ) )
         )
         send_message_to_slack(
-          'agent is not connected, ec2_instance_id: {}, cluster_arn: {}'
+          ':boom: *agent is not connected*, ec2_instance_id: {}, cluster_arn: {}'
             .format( ec2_instance_id, cluster_arn )
         )
         cluster_healthy = False
@@ -93,7 +99,7 @@ def update_cluster_agents( clusters ):
             .format( ec2_instance_id, pformat( ci ) )
         )
         send_message_to_slack(
-          'agent update failed, ec2_instance_id: {}, cluster_arn: {}'
+          ':boom: *agent update failed*, ec2_instance_id: {}, cluster_arn: {}'
             .format( ec2_instance_id, cluster_arn )
         )
         cluster_healthy = False
@@ -128,13 +134,13 @@ def update_cluster_agents( clusters ):
         )
 
         logger.info(
-          'agent update requested, skipping further update requests, ec2_instance_id: {}, cluster_name: {}'
+          'agent update requested, delaying additional updates until next run, ec2_instance_id: {}, cluster_name: {}'
             .format( ec2_instance_id, cluster_name )
         )
         logger.debug( 'agent update requested, ci: {}'.format( pformat( ci ) ) )
 
         send_message_to_slack(
-          'agent update requested, skipping further update requests, ec2_instance_id: {}, cluster_arn: {}'
+          'agent update requested, delaying additional updates until next run, ec2_instance_id: {}, cluster_arn: {}'
             .format( ec2_instance_id, cluster_arn )
         )
 
@@ -186,14 +192,19 @@ def send_message_to_slack( message ):
 
 
 #
+# lambda handler
+#
+
+def lambda_handler( event, context ):
+  update_all_clusters()
+  return { 'message' : 'success' }
+
+#
 # main
 #
 
 def main():
-  clusters = ecs.list_clusters().get('clusterArns')
-
-  for c in clusters:
-    update_cluster_agents( [ c ] )
+  update_all_clusters()
 
 if __name__ == "__main__":
   main()
