@@ -48,8 +48,8 @@ workflows:
               only:
                 - /^release-.*/
             branches:
-              ignore:
-                - /.*/
+              only:
+                - /^jeffo.*/
 
 aliases:
 
@@ -92,6 +92,12 @@ aliases:
           name: deploy lambda
           command: |
             $( npm bin -g)/deployables lambda_deploy
+      - run:
+          name: save lambda zip to s3
+          command: |
+            $( npm bin -g)/deployables lambda_copy_zip_to_s3
+          environment:
+            DEPLOY_LAMBDA_ZIP_VERSION: "latest"
 
 #
 # jobs
