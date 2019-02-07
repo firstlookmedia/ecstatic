@@ -119,7 +119,7 @@ aliases:
           command: |
             [[ ! -z "${COPY_ZIP_TO_S3}" ]] \
               && $( npm bin -g)/deployables lambda_copy_zip_to_s3 \
-              || true
+              || $?
 
 #
 # jobs

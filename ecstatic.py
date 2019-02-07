@@ -87,7 +87,7 @@ def update_cluster_agents( clusters ):
             .format( ec2_instance_id, pformat( ci ) )
         )
         send_message_to_slack(
-          'agent is not connected, ec2_instance_id: {}, cluster_arn: {}'
+          ':boom: *agent is not connected*, ec2_instance_id: {}, cluster_arn: {}'
             .format( ec2_instance_id, cluster_arn )
         )
         cluster_healthy = False
@@ -99,7 +99,7 @@ def update_cluster_agents( clusters ):
             .format( ec2_instance_id, pformat( ci ) )
         )
         send_message_to_slack(
-          'agent update failed, ec2_instance_id: {}, cluster_arn: {}'
+          ':boom: *agent update failed*, ec2_instance_id: {}, cluster_arn: {}'
             .format( ec2_instance_id, cluster_arn )
         )
         cluster_healthy = False
