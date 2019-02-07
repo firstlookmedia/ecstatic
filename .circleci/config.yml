@@ -56,13 +56,9 @@ aliases:
   - &docker
       - image: circleci/python:3.7
 
-  - &deploy
-    machine:
-      image: circleci/classic:latest
-    steps:
-      - attach_workspace:
-          at: /tmp/workspace
-      - run:
+  - &set-global-env
+      name: Setup global environment variables
+      command: |
           name: setup global environment
           command: |
             echo 'export DEPLOY_ENV_FILE=$BASH_ENV' >> $BASH_ENV
@@ -80,14 +76,42 @@ aliases:
             echo 'export DEPLOY_LAMBDA_FUNCTION_ENV_TEMPLATE="/tmp/workspace/environment.txt"' >> $BASH_ENV
             echo 'export DEPLOY_LAMBDA_SOURCE_DIR="/tmp/workspace/build"' >> $BASH_ENV
             echo 'export DEPLOY_LAMBDA_TARGET_INPUT_JSON="{}"' >> $BASH_ENV
-
             #
             echo 'export ECSTATIC_LOG_LEVEL=${ECSTATIC_LOG_LEVEL:-DEBUG}' >> $BASH_ENV
 
+  - &deployables-install
+    name: Install deployment dependencies
+    command: |
+      npm install -g https://github.com/firstlookmedia/deployables#jeffo/lambda
+
+  # build
+
+  - &build
+    docker: *docker
+    steps:
+      - checkout
       - run:
-          name: install deployables
+          name: build app
           command: |
-            npm install -g https://github.com/firstlookmedia/deployables#jeffo/lambda
+            mkdir ./build
+            cp ./*.py ./build
+            pip install -r requirements.txt --target=./build
+      - persist_to_workspace:
+          root: ~/project
+          paths:
+            - ./environment.txt
+            - ./build
+
+  # deploy
+
+  - &deploy
+    machine:
+      image: circleci/classic:latest
+    steps:
+      - attach_workspace:
+          at: /tmp/workspace
+      - run: *set-global-env
+      - run: *deployables-install
       - run:
           name: deploy lambda
           command: |
@@ -95,9 +119,9 @@ aliases:
       - run:
           name: save lambda zip to s3
           command: |
-            $( npm bin -g)/deployables lambda_copy_zip_to_s3
-          environment:
-            DEPLOY_LAMBDA_ZIP_VERSION: "latest"
+            [[ ! -z "${COPY_ZIP_TO_S3}" ]] \
+              && $( npm bin -g)/deployables lambda_copy_zip_to_s3 \
+              || true
 
 #
 # jobs
@@ -129,20 +153,7 @@ jobs:
 
   # build
   build_app:
-    docker: *docker
-    steps:
-      - checkout
-      - run:
-          name: build app
-          command: |
-            mkdir ./build
-            cp ./*.py ./build
-            pip install -r requirements.txt --target=./build
-      - persist_to_workspace:
-          root: ~/project
-          paths:
-            - ./environment.txt
-            - ./build
+    <<: *build
 
   # dev
   deploy_dev:
@@ -160,5 +171,6 @@ jobs:
   deploy_prod:
     environment:
       ENV_SUFFIX: "PROD"
+      COPY_ZIP_TO_S3: 1
       ECSTATIC_LOG_LEVEL: "INFO"
     <<: *deploy
