@@ -115,7 +115,7 @@ aliases:
           command: |
             $( npm bin -g)/deployables lambda_deploy
       - run:
-          name: save lambda zip to s3
+          name: copy zip to s3
           command: |
             [[ -z "${COPY_ZIP_TO_S3}" ]] \
               && true \
