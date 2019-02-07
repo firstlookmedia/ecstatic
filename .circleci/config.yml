@@ -80,7 +80,7 @@ aliases:
   - &deployables-install
     name: Install deployment dependencies
     command: |
-      npm install -g https://github.com/firstlookmedia/deployables#jeffo/lambda
+      npm install -g https://github.com/firstlookmedia/deployables
 
   # build
 
