@@ -11,6 +11,12 @@ variable "description" {
   type = "string"
 }
 
+variable "webhook_url" {
+  description = "webhook for sending slack-style notifications"
+  default = ""
+  type = "string"
+}
+
 variable "s3_bucket" {
   description = "S3 bucket with the initial lambda zip resides"
   default = "code.firstlook.media"
@@ -32,3 +38,4 @@ variable "security_group_ids" {
   description = "list of security group ids for the function"
   type = "list"
 }
+

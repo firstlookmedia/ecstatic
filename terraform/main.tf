@@ -21,6 +21,12 @@ resource "aws_lambda_function" "this" {
     security_group_ids = [ "${var.security_group_ids}" ]
   }
 
+  environment {
+    variables = {
+      ECSTATIC_WEBHOOK_URL = "${var.webhook_url}"
+    }
+  }
+
   lifecycle {
     ignore_changes = [ "description", "environment", "handler", "runtime", "timeout", "memory_size" ]
   }
