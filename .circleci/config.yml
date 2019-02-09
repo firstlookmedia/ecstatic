@@ -9,7 +9,6 @@ aliases:
 
   - &staging-branches
       - master
-      - /^jeffo.*/
 
   - &release-tags
       - /^v\d+\.\d+\.\d+/
