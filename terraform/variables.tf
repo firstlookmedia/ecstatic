@@ -25,7 +25,7 @@ variable "s3_bucket" {
 
 variable "s3_key" {
   description = "S3 key for the initial lambda zip"
-  default = "ecstatic/ecstatic.zip"
+  default = "ecstatic/archive/ecstatic-v0.0.1.zip"
   type = "string"
 }
 

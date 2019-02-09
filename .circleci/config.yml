@@ -26,7 +26,7 @@ workflows:
           filters:
             branches:
               only:
-                - stable
+                - master
                 - /^jeffo.*/
 
       - deploy_staging:
@@ -36,8 +36,7 @@ workflows:
           filters:
             branches:
               only:
-                - stable
-                - /^jeffo.*/
+                - master
 
       - deploy_prod:
           requires:
@@ -46,10 +45,10 @@ workflows:
           filters:
             tags:
               only:
-                - /^release-.*/
+                - /^v\d+\.\d+\.\d+/
             branches:
-              only:
-                - /^jeffo.*/
+              ignore:
+                - /.*/
 
 aliases:
 
@@ -74,6 +73,7 @@ aliases:
         echo 'export DEPLOY_LAMBDA_FUNCTION_ENV_TEMPLATE="/tmp/workspace/environment.txt"' >> $BASH_ENV
         echo 'export DEPLOY_LAMBDA_SOURCE_DIR="/tmp/workspace/build"' >> $BASH_ENV
         echo 'export DEPLOY_LAMBDA_TARGET_INPUT_JSON="{}"' >> $BASH_ENV
+        echo 'export DEPLOY_LAMBDA_ZIP_VERSION="{CIRCLE_TAG:-}"' >> $BASH_ENV
         #
         echo 'export ECSTATIC_LOG_LEVEL=${ECSTATIC_LOG_LEVEL:-DEBUG}' >> $BASH_ENV
 
@@ -81,6 +81,31 @@ aliases:
     name: Install deployment dependencies
     command: |
       npm install -g https://github.com/firstlookmedia/deployables
+
+  # test
+
+  - &test
+    docker: *docker
+    steps:
+      - checkout
+      - run:
+          name: check requirements
+          command: |
+            virtualenv venv
+            source venv/bin/activate
+            pip install -r requirements.txt
+      - run:
+          name: check syntax
+          command: |
+            source venv/bin/activate
+            python -m py_compile *.py
+      - run:
+          name: run pylint
+          command: |
+            source venv/bin/activate
+            pip install pylint
+            pylint *.py || true
+
 
   # build
 
@@ -118,7 +143,7 @@ aliases:
           name: copy zip to s3
           command: |
             [[ -z "${COPY_ZIP_TO_S3}" ]] \
-              && true \
+              && echo "Skipping upload to S3" \
               || $( npm bin -g)/deployables lambda_copy_zip_to_s3
 
 #
@@ -128,26 +153,7 @@ jobs:
 
   # test
   test_app:
-    docker: *docker
-    steps:
-      - checkout
-      - run:
-          name: check requirements
-          command: |
-            virtualenv venv
-            source venv/bin/activate
-            pip install -r requirements.txt
-      - run:
-          name: check syntax
-          command: |
-            source venv/bin/activate
-            python -m py_compile *.py
-      - run:
-          name: run pylint
-          command: |
-            source venv/bin/activate
-            pip install pylint
-            pylint *.py || true
+    <<: *test
 
   # build
   build_app:
