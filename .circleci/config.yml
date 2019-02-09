@@ -1,61 +1,17 @@
 
 version: 2
 
-workflows:
-  version: 2
-
-  main:
-    jobs:
-
-      - build_app:
-          filters:
-            tags:
-              only:
-                - /.*/
-
-      - test_app:
-          filters:
-            tags:
-              only:
-                - /.*/
-
-      - deploy_dev:
-          requires:
-            - test_app
-            - build_app
-          filters:
-            tags:
-              only: *release-regex
-            branches:
-              only:
-                - master
-                - /^jeffo.*/
-
-      - deploy_staging:
-          requires:
-            - test_app
-            - build_app
-          filters:
-            tags:
-              only: *release-regex
-            branches:
-              only:
-                - master
-
-      - deploy_prod:
-          requires:
-            - test_app
-            - build_app
-          filters:
-            tags:
-              only: *release-regex
-            branches:
-              ignore:
-                - /.*/
-
 aliases:
 
-  - &release-regex
+  - &dev-branches
+      - master
+      - /^jeffo.*/
+
+  - &staging-branches
+      - master
+      - /^jeffo.*/
+
+  - &release-tags
       - /^v\d+\.\d+\.\d+/
 
   - &docker
@@ -151,6 +107,59 @@ aliases:
             [[ -z "${COPY_ZIP_TO_S3}" ]] \
               && echo "Skipping upload to S3" \
               || $( npm bin -g)/deployables lambda_copy_zip_to_s3
+
+#
+# workflows
+#
+workflows:
+  version: 2
+
+  main:
+    jobs:
+
+      - build_app:
+          filters:
+            tags:
+              only:
+                - /.*/
+
+      - test_app:
+          filters:
+            tags:
+              only:
+                - /.*/
+
+      - deploy_dev:
+          requires:
+            - test_app
+            - build_app
+          filters:
+            tags:
+              only: *release-tags
+            branches:
+              only: *dev-branches
+
+      - deploy_staging:
+          requires:
+            - test_app
+            - build_app
+          filters:
+            tags:
+              only: *release-tags
+            branches:
+              only: *staging-branches
+
+      - deploy_prod:
+          requires:
+            - test_app
+            - build_app
+          filters:
+            tags:
+              only: *release-tages
+            branches:
+              ignore:
+                - /.*/
+
 
 #
 # jobs
