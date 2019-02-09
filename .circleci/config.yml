@@ -155,7 +155,7 @@ workflows:
             - build_app
           filters:
             tags:
-              only: *release-tages
+              only: *release-tags
             branches:
               ignore:
                 - /.*/
