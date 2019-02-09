@@ -24,6 +24,8 @@ workflows:
             - test_app
             - build_app
           filters:
+            tags:
+              only: *release-regex
             branches:
               only:
                 - master
@@ -34,6 +36,8 @@ workflows:
             - test_app
             - build_app
           filters:
+            tags:
+              only: *release-regex
             branches:
               only:
                 - master
@@ -44,13 +48,15 @@ workflows:
             - build_app
           filters:
             tags:
-              only:
-                - /^v\d+\.\d+\.\d+/
+              only: *release-regex
             branches:
               ignore:
                 - /.*/
 
 aliases:
+
+  - &release-regex
+      - /^v\d+\.\d+\.\d+/
 
   - &docker
       - image: circleci/python:3.7
@@ -73,7 +79,7 @@ aliases:
         echo 'export DEPLOY_LAMBDA_FUNCTION_ENV_TEMPLATE="/tmp/workspace/environment.txt"' >> $BASH_ENV
         echo 'export DEPLOY_LAMBDA_SOURCE_DIR="/tmp/workspace/build"' >> $BASH_ENV
         echo 'export DEPLOY_LAMBDA_TARGET_INPUT_JSON="{}"' >> $BASH_ENV
-        echo 'export DEPLOY_LAMBDA_ZIP_VERSION="{CIRCLE_TAG:-}"' >> $BASH_ENV
+        echo 'export DEPLOY_LAMBDA_ZIP_VERSION="${CIRCLE_TAG:-}"' >> $BASH_ENV
         #
         echo 'export ECSTATIC_LOG_LEVEL=${ECSTATIC_LOG_LEVEL:-DEBUG}' >> $BASH_ENV
 
