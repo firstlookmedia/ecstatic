@@ -143,7 +143,7 @@ aliases:
           name: copy zip to s3
           command: |
             [[ -z "${COPY_ZIP_TO_S3}" ]] \
-              && true \
+              && echo "Skipping upload to S3" \
               || $( npm bin -g)/deployables lambda_copy_zip_to_s3
 
 #
