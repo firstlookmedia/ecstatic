@@ -25,7 +25,7 @@ Add and edit the following module block to your [AWS provider](https://www.terra
 
 ```
 module "ecstatic" {
-  source             = "git@github.com:firstlookmedia/ecstatic//terraform#0.0.1"
+  source             = "git@github.com:firstlookmedia/ecstatic//terraform?ref=v0.0.1"
   subnet_ids         = [ "${aws_subnet.vpc_subnet_1.id}", "${aws_subnet.vpc_subnet_2.id}" ]
   security_group_ids = [ "${aws_security_group.vpc_allow_all.id}" ]
   webhook_url        = "https://hooks.slack.com/services/JGKDLKTJDKG/FJSKFJGJKSKG/GJDKSKGJ"
