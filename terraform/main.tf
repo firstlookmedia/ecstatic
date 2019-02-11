@@ -103,3 +103,27 @@ resource "aws_iam_role_policy_attachment" "this" {
   policy_arn = "arn:aws:iam::aws:policy/service-role/AWSLambdaVPCAccessExecutionRole"
 }
 
+//
+// cloudwatch events
+//
+
+resource "aws_cloudwatch_event_rule" "hourly" {
+  name                = "${var.function_name}_hourly"
+  description         = "trigger ${var.function_name} every hour"
+  schedule_expression = "rate(1 hour)"
+}
+
+resource "aws_cloudwatch_event_target" "hourly" {
+  target_id = "${var.function_name}_hourly"
+  rule      = "${aws_cloudwatch_event_rule.hourly.name}"
+  arn       = "${aws_lambda_function.this.arn}"
+  input     = "{}"
+}
+
+resource "aws_lambda_permission" "hourly" {
+  statement_id  = "${var.function_name}_hourly"
+  principal     = "events.amazonaws.com"
+  action        = "lambda:InvokeFunction"
+  function_name = "${aws_lambda_function.this.function_name}"
+  source_arn    = "${aws_cloudwatch_event_rule.hourly.arn}"
+}
