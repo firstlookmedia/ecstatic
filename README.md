@@ -53,16 +53,29 @@ This will create the following resources in your AWS account:
 1. `aws_iam_role_policy` named `ecstatic_lambda`
 1. `aws_iam_role_policy_attachment`
     - Attaches the lambda IAM role to `service-role/AWSLambdaVPCAccessExecutionRole`
+1. `aws_cloudwatch_event_rule` named `ecstatic_update`
+1. `aws_cloudwatch_event_target` named `ecstatic_update`
+1. `aws_lambda_permission` named `ecstatic_update`
 
 The initial Terraform `apply` will pull the most recent released version of `ecstatic` from S3:
 
-* e.g. https://s3.amazonaws.com/code.firstlook.media/ecstatic/archive/ecstatic-v0.0.1.zip
+* https://s3.amazonaws.com/code.firstlook.media/ecstatic/archive/ecstatic-v0.0.1.zip
 
+The [schedule expression](https://docs.aws.amazon.com/AmazonCloudWatch/latest/events/ScheduledEvents.html) for the [CloudWatch rule](https://docs.aws.amazon.com/AmazonCloudWatch/latest/events/Create-CloudWatch-Events-Scheduled-Rule.html) that is created to trigger updates defaults to `rate( 1 hour )`.  If you would like to trigger this less frequently, you can override the value by setting `update_schedule_expression` in the module block, e.g.
 
+```
+module "ecstatic" {
+  source = "git@github.com:firstlookmedia/ecstatic//terraform?ref=v0.0.1"
+  ...
+  update_schedule_expression = "rate( 4 hours )"
+}
+```
+
+Supported Terraform module variables are defined in [terraform/variables.tf](terraform/variables.tf).
 
 ## Running from the Command-Line
 
-Ecstatic can also be run locally from the command-line.  The steps to do this are:
+Ecstatic can also be run locally and manually from the command-line.  The steps to do this are:
 
 1\. Install Python and create a virtual environment
 
@@ -89,11 +102,11 @@ $ pip install -r requirements.txt
 $ AWS_PROFILE=ecs-admin ./ecstatic.py
 ```
 
-You can learn how to configure your AWS credentials to work with [Boto3](https://github.com/boto/boto3) here: [Credentials](https://boto3.amazonaws.com/v1/documentation/api/latest/guide/configuration.html)
+You can learn how to configure your AWS credentials to work with [Boto3](https://github.com/boto/boto3) here: [Credentials](https://boto3.amazonaws.com/v1/documentation/api/latest/guide/configuration.html).
 
 #### aws-profile-gpg
 
-Additionally, we recommend using [aws-profile-gpg](https://github.com/firstlookmedia/aws-profile-gpg), a tool that generates role-specific IAM access tokens while safely storing your secret access keys in a [GPG](https://www.gnupg.org/) encrypted file.
+We recommend using [aws-profile-gpg](https://github.com/firstlookmedia/aws-profile-gpg), a tool that generates role-specific IAM access tokens while safely storing your secret access keys in a [GPG](https://www.gnupg.org/) encrypted file.
 
 ```
 # run ecstatic using aws-profile-gpg

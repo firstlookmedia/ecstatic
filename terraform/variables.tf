@@ -39,3 +39,8 @@ variable "security_group_ids" {
   type = "list"
 }
 
+variable "update_schedule_expression" {
+  description = "the cloudwatch schedule expression for when to run updates"
+  default = "rate(1 hour)"
+  type = "string"
+}
