@@ -71,7 +71,7 @@ module "ecstatic" {
 }
 ```
 
-Supported Terraform module variables are defined in [terraform/variables.tf][terraform/variables.tf)
+Supported Terraform module variables are defined in [terraform/variables.tf](terraform/variables.tf)
 
 ## Running from the Command-Line
 
