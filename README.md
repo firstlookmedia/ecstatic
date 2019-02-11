@@ -1,25 +1,25 @@
 
 # Ecstatic
 
-An AWS Lambda for updating and monitoring ECS agents.
+An [AWS Lambda](https://aws.amazon.com/lambda/)-ready script for updating and monitoring [ECS agents](https://github.com/aws/amazon-ecs-agent).
 
 ## How It Works
 
-Each time ecstatic's default handler – `lambda_handler()` or `main()` – is called, the script does the following:
+The script does the following when the lambda handler is called or it's run manually from the command-line:
 
-1. Loops through each ECS cluster one-by-one
-2. Loops through each container instance in the current cluster
-3. If an ECS agent is in a disconnect state or if a previous attempt to update the agent failed:
-    - A warning will be logged and the cluster will not be updated
+1. Loops through the ECS clusters in your account
+2. Loops through the container instances in the current cluster
+3. If an ECS agent is in a disconnect state, or if a previous attempt to update the agent failed:
+    - A warning is logged and the cluster is not updated
 4. If all ECS agents in a cluster are healthy:
-    - [UpdateContainerAgent](https://docs.aws.amazon.com/AmazonECS/latest/APIReference/API_UpdateContainerAgent.html) will be called one agent at a time
-5. If a call to `UpdateContainerAgent` is accepted – because an agent is out-of-date:
-    - Further updates in the current cluster will be delayed until later runs
-    - This is to affect an incremental roll-out of agent updates across a cluster
+    - AWS SDK's [UpdateContainerAgent](https://docs.aws.amazon.com/AmazonECS/latest/APIReference/API_UpdateContainerAgent.html) is called on each agent, one at a time
+5. If an agent is out-of-date and the request to `UpdateContainerAgent` is accepted:
+    - Further updates in the current cluster are delayed until later runs
+    - _This is to affect an incremental roll-out of agent updates across a cluster_
 
 Also, if an agent update request is accepted or if an agents is in an error state, a [Slack-style](https://api.slack.com/incoming-webhooks) message will be sent to `ECSTATIC_WEBHOOK_URL`, if set.
 
-## Using Terraform
+## Installing with Terraform
 
 Add and edit the following module block to your [AWS provider](https://www.terraform.io/docs/providers/aws/) enabled [Terraform](https://www.terraform.io/) configs:
 
@@ -32,11 +32,11 @@ module "ecstatic" {
 }
 ```
 
-The lambda is configured to require a VPC, therefore, you'll need to edit the following variables in the block:
+The lambda is configured to run in a VPC, therefore, you'll need to edit the following variables in the module block:
 
 1. `subnet_ids` – at least one VPC subnet must be specified
-2. `security_group_ids` – the security group specified must allow network access to target ECS clusters
-3. `webhook_url` – _(optional)_ should be set or removed to enable or disable webhook messages, respectively
+2. `security_group_ids` – at least one security group specified must allow network access to the target ECS clusters
+3. `webhook_url` – _(optional)_ should be set to enable – or removed to disable – webhook messages
     - See Slack's [Incoming Webhooks](https://api.slack.com/incoming-webhooks) for more information.
 
 Once the module block is added and edited, run:
@@ -46,7 +46,7 @@ terraform init --upgrade
 terraform apply --target=module.ecstatic
 ```
 
-This will create the following:
+This will create the following resources in your AWS account:
 
 1. `aws_lambda_function` named `ecstatic`
 1. `aws_iam_role` named `ecstatic_lambda`
@@ -58,13 +58,15 @@ The initial Terraform `apply` will pull the most recent released version of `ecs
 
 * e.g. https://s3.amazonaws.com/code.firstlook.media/ecstatic/archive/ecstatic-v0.0.1.zip
 
-## Using the Command-Line
 
-Ecstatic can also be run manually from the command-line.
 
-1\. Install prerequisites
+## Running from the Command-Line
 
-We use [Homebrew](https://brew.sh/), [PyEnv](https://github.com/pyenv/pyenv), and [pyenv-virtualenv](https://github.com/pyenv/pyenv-virtualenv).  The latter two tools are great for managing multiple installed versions of Python and required modules.
+Ecstatic can also be run locally from the command-line.  The steps to do this are:
+
+1\. Install Python and create a virtual environment
+
+We use [Homebrew](https://brew.sh/), [PyEnv](https://github.com/pyenv/pyenv), and [pyenv-virtualenv](https://github.com/pyenv/pyenv-virtualenv).  The latter two tools are great for managing multiple installed versions of Python and needed modules.
 
 ```
 $ brew install pyenv pyenv-virtualenv
@@ -72,7 +74,7 @@ $ pyenv install 3.7.1
 $ pyenv virtualenv 3.7.1 ecstatic
 ```
 
-2\. Clone the repo and install required modules
+2\. Get the code, activate the virtual environment, and install requirements
 
 ```
 $ git clone git@github.com:firstlookmedia/ecstatic.git
@@ -81,7 +83,7 @@ $ pyenv local ecstatic
 $ pip install -r requirements.txt
 ```
 
-3\. Run `ecstatic.py`
+3\. Run the script
 
 ```
 $ AWS_PROFILE=ecs-admin ./ecstatic.py
@@ -126,3 +128,7 @@ If you have ideas or feedback, feel free to send feedback via [GitHub Issues](ht
 * Amazon ECS Container Agent Versions
     - https://docs.aws.amazon.com/AmazonECS/latest/developerguide/container_agent_versions.html
 
+## Further Reading
+
+* First Look Media Technolog Blog
+    - https://tech.firstlook.media/
